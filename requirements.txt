@@ -9,3 +9,7 @@ phonenumbers
 pydantic-settings
 apscheduler
 python-multipart
+slowapi>=0.1.9                    # Rate limiting
+python-dotenv>=1.0.0              # Env var security
+cryptography>=41.0.0              # Encryption
+validators>=0.22.0                # Input validation

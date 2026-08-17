@@ -3,43 +3,53 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Relay — CRM Console</title>
+<title>Relay — Insurance CRM</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{--canvas:#F4F4F7;--surface:#fff;--shell:#171821;--line:#E7E7EE;--ink:#15151C;
---muted:#6A6A78;--faint:#9A9AA8;--ai:#6D4AFF;--ai-soft:#EDE9FF;--live:#00C48C;
---live-soft:#E1F8F0;--replied:#F5A623;--optout:#FF5C7A;--optout-soft:#FFE7EC;
---mono:'JetBrains Mono',monospace;--sans:'Inter',system-ui,sans-serif}
+:root{
+  --canvas:#F4F4F7;--surface:#fff;--shell:#171821;--line:#E7E7EE;--ink:#15151C;
+  --muted:#6A6A78;--faint:#9A9AA8;--ai:#6D4AFF;--ai-soft:#EDE9FF;--live:#00C48C;
+  --live-soft:#E1F8F0;--replied:#F5A623;--optout:#FF5C7A;--optout-soft:#FFE7EC;
+  --mono:'JetBrains Mono',monospace;--sans:'Inter',system-ui,sans-serif;
+}
 *{box-sizing:border-box}
 body{margin:0;font-family:var(--sans);background:var(--canvas);color:var(--ink);font-size:14px;height:100vh;display:flex;flex-direction:column}
-.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
 
-header{background:var(--shell);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px}
+header{background:var(--shell);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.1)}
 .logo{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--ai),#9B6BFF);display:grid;place-items:center}
 .logo span{width:9px;height:9px;border-radius:2px;background:#fff;transform:rotate(45deg)}
-header b{font-size:15px}
-header small{color:#9a9ab5;font-size:11px;display:block;margin-top:-1px}
+header b{font-size:15px}header small{color:#9a9ab5;font-size:11px;display:block;margin-top:-1px}
 .mode{margin-left:auto;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;background:rgba(0,196,140,.15);color:#5ce8bd}
 .mode.live{background:rgba(255,92,122,.18);color:#ff9bb0}
 
-.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:14px 20px 4px}
+.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:14px 20px 4px}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
 .stat .k{font-size:11px;color:var(--muted);font-weight:500;display:flex;gap:6px;align-items:center}
 .stat .k i{width:7px;height:7px;border-radius:2px;display:inline-block}
 .stat .v{font-family:var(--mono);font-size:22px;font-weight:700;margin-top:6px}
 
-.wrap{flex:1;display:grid;grid-template-columns:280px 1fr 300px;gap:10px;padding:10px 20px 20px;min-height:0}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:11px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
-.phead{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.container{flex:1;display:grid;grid-template-columns:280px 1fr;gap:10px;padding:10px 20px 20px;min-height:0;overflow:hidden}
+
+.sidebar{display:flex;flex-direction:column;gap:10px;min-height:0}
+.nav-panel{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:0;display:flex;flex-direction:column;flex:0 0 auto}
+.nav-item{padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer;font-weight:600;font-size:13px;text-align:center;transition:all .2s}
+.nav-item:hover{background:var(--ai-soft)}
+.nav-item.active{background:var(--ai);color:#fff}
+
+.leads-panel{background:var(--surface);border:1px solid var(--line);border-radius:11px;display:flex;flex-direction:column;min-height:0;flex:1}
+.phead{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:8px}
 .phead h3{margin:0;font-size:13px;font-weight:600}
-.btn{border:none;border-radius:8px;padding:6px 12px;font-family:var(--sans);font-weight:600;font-size:12px;cursor:pointer;background:var(--ai);color:#fff}
-.btn.ghost{background:var(--canvas);color:var(--ink)}
+.phead input{flex:1;border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:12px;outline:none}
+.phead input:focus{border-color:var(--ai)}
+.btn{border:none;border-radius:8px;padding:6px 12px;font-family:var(--sans);font-weight:600;font-size:12px;cursor:pointer;background:var(--ai);color:#fff;white-space:nowrap;transition:all .2s}
+.btn:hover{opacity:.9}
+.btn.ghost{background:var(--canvas);color:var(--ink);border:1px solid var(--line)}
 .btn.ok{background:var(--live)}
 .btn.no{background:var(--optout)}
 .btn:disabled{opacity:.5;cursor:default}
 
 .list{overflow-y:auto;flex:1}
-.lead{padding:11px 14px;border-bottom:1px solid var(--line);cursor:pointer;display:flex;gap:10px;align-items:center}
+.lead{padding:11px 14px;border-bottom:1px solid var(--line);cursor:pointer;display:flex;gap:10px;align-items:center;transition:all .2s}
 .lead:hover{background:#FAFAFC}
 .lead.sel{background:var(--ai-soft);box-shadow:inset 3px 0 0 var(--ai)}
 .av{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:#fff;font-weight:600;font-size:12px;flex:0 0 auto}
@@ -49,31 +59,53 @@ header small{color:#9a9ab5;font-size:11px;display:block;margin-top:-1px}
 .s-engaged{background:#FDF1DC;color:#B9781A}.s-active{background:var(--ai-soft);color:var(--ai)}
 .s-booked{background:var(--live-soft);color:#068A63}.s-opted_out{background:var(--optout-soft);color:#D83A5A}
 .s-new{background:#eee;color:#6A6A78}
+.empty{padding:24px 14px;text-align:center;color:var(--faint);font-size:12px}
 
+.main{display:flex;flex-direction:column;gap:10px;min-height:0;overflow:hidden}
+.view{background:var(--surface);border:1px solid var(--line);border-radius:11px;display:none;flex:1;flex-direction:column;min-height:0;overflow:hidden}
+.view.active{display:flex}
+
+.contact-detail{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:20px;overflow-y:auto}
+.field-group{display:flex;flex-direction:column;gap:6px}
+.field-group label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.field-group input{border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-family:var(--sans);font-size:13px}
+
+.thread-view{display:flex;flex-direction:column;min-height:0}
+.thread-header{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.thread-header h3{margin:0;font-size:14px;font-weight:600}
 .thread{flex:1;overflow-y:auto;padding:16px;background:linear-gradient(180deg,#FCFCFD,#F8F8FB);display:flex;flex-direction:column;gap:10px}
 .msg{max-width:75%;padding:9px 12px;border-radius:13px;font-size:13px;line-height:1.45}
 .msg.in{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
 .msg.out{align-self:flex-end;background:var(--ai);color:#fff;border-bottom-right-radius:4px}
 .msg.draft{align-self:flex-end;background:#EEECFB;color:var(--ai);border:1px dashed #CFC5FF}
 .msg .tag{display:block;font-size:9px;font-weight:700;opacity:.7;margin-bottom:3px;letter-spacing:.04em}
+.msg .status{display:block;font-size:9px;opacity:.6;margin-top:3px}
+
 .composer{border-top:1px solid var(--line);padding:10px;display:flex;gap:8px}
 .composer input{flex:1;border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-family:var(--sans);font-size:13px;outline:none}
 .composer input:focus{border-color:var(--ai)}
-.hint{font-size:11px;color:var(--faint);padding:0 14px 10px}
+.hint{font-size:11px;color:var(--faint);padding:0 20px 10px}
 
-.draft-item{padding:11px 14px;border-bottom:1px solid var(--line)}
-.draft-item .body{font-size:12.5px;background:#EEECFB;color:var(--ai);border:1px dashed #CFC5FF;border-radius:9px;padding:8px 10px;margin:6px 0}
-.draft-item .who{font-size:11px;color:var(--muted);font-weight:600}
-.draft-item .row{display:flex;gap:6px;margin-top:6px}
-.empty{padding:24px 14px;text-align:center;color:var(--faint);font-size:12px}
+.analytics-view{padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:20px}
+.funnel{display:flex;flex-direction:column;gap:10px}
+.funnel-step{display:flex;align-items:center;gap:12px}
+.funnel-bar{background:var(--ai-soft);border-left:3px solid var(--ai);padding:12px 16px;border-radius:8px;flex:1;font-weight:600}
+.funnel-pct{font-size:12px;color:var(--muted);min-width:50px;text-align:right}
+
 .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--ai-soft);border-top-color:var(--ai);border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle}
 @keyframes sp{to{transform:rotate(360deg)}}
+
+.draft-item{padding:14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.draft-item .who{font-size:11px;color:var(--muted);font-weight:600}
+.draft-item .body{font-size:13px;background:#EEECFB;color:var(--ai);border:1px dashed #CFC5FF;border-radius:9px;padding:10px;margin:4px 0}
+.draft-item .row{display:flex;gap:6px}
 </style>
 </head>
 <body>
+
 <header>
   <div class="logo"><span></span></div>
-  <div><b>Relay</b><small>Insurance CRM console</small></div>
+  <div><b>Relay</b><small>Insurance CRM</small></div>
   <span class="mode" id="mode">checking…</span>
 </header>
 
@@ -81,30 +113,139 @@ header small{color:#9a9ab5;font-size:11px;display:block;margin-top:-1px}
   <div class="stat"><div class="k"><i style="background:var(--faint)"></i>Contacts</div><div class="v" id="m-contacts">–</div></div>
   <div class="stat"><div class="k"><i style="background:var(--replied)"></i>Engaged</div><div class="v" id="m-engaged">–</div></div>
   <div class="stat"><div class="k"><i style="background:var(--live)"></i>Booked</div><div class="v" id="m-booked">–</div></div>
-  <div class="stat"><div class="k"><i style="background:var(--optout)"></i>Opted out</div><div class="v" id="m-opted">–</div></div>
+  <div class="stat"><div class="k"><i style="background:var(--optout)"></i>Opted Out</div><div class="v" id="m-opted">–</div></div>
   <div class="stat"><div class="k"><i style="background:var(--ink)"></i>Sent</div><div class="v" id="m-sent">–</div></div>
+  <div class="stat"><div class="k"><i style="background:var(--live)"></i>Delivery Rate</div><div class="v" id="m-delivery">–</div></div>
 </div>
 
-<div class="wrap">
-  <div class="panel">
-    <div class="phead"><h3>Leads</h3><button class="btn" onclick="newLead()">+ Test lead</button></div>
-    <div class="list" id="leads"></div>
-  </div>
+<div class="container">
+  <!-- Sidebar: Nav + Leads -->
+  <div class="sidebar">
+    <div class="nav-panel">
+      <div class="nav-item active" onclick="switchView('leads')">Leads</div>
+      <div class="nav-item" onclick="switchView('analytics')">Analytics</div>
+      <div class="nav-item" onclick="switchView('sequences')">Sequences</div>
+      <div class="nav-item" onclick="switchView('import')">Import</div>
+    </div>
 
-  <div class="panel">
-    <div class="phead"><h3 id="thread-title">Select a lead</h3><span id="thread-status"></span></div>
-    <div class="thread" id="thread"><div class="empty">Pick a lead to view the conversation, or create a test lead and talk to the agent.</div></div>
-    <div class="hint" id="hint"></div>
-    <div class="composer">
-      <input id="box" placeholder="Type as the lead… (test mode)" disabled
-             onkeydown="if(event.key==='Enter')sendMsg()">
-      <button class="btn" id="sendbtn" onclick="sendMsg()" disabled>Send</button>
+    <div class="leads-panel">
+      <div class="phead">
+        <h3>Leads</h3>
+        <button class="btn" onclick="newLead()" style="margin-left:auto">+ Test</button>
+      </div>
+      <div style="padding:8px 10px;border-bottom:1px solid var(--line)">
+        <input type="text" id="search" placeholder="Search leads…" onkeyup="filterLeads()" style="width:100%;margin:0;padding:6px 10px">
+      </div>
+      <div class="list" id="leads"></div>
     </div>
   </div>
 
-  <div class="panel">
-    <div class="phead"><h3>Drafts awaiting approval</h3></div>
-    <div class="list" id="drafts"></div>
+  <!-- Main Content Area -->
+  <div class="main">
+    <!-- Leads View -->
+    <div class="view active" id="view-leads">
+      <div class="phead" style="justify-content:space-between;padding:14px 20px">
+        <h3 id="contact-name">Select a lead</h3>
+        <div style="display:flex;gap:8px">
+          <button class="btn ghost" id="edit-btn" onclick="editContact()" style="display:none">Edit</button>
+          <button class="btn ghost" id="message-btn" onclick="toggleComposer()" style="display:none">Message</button>
+        </div>
+      </div>
+
+      <div style="flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden">
+        <!-- Contact Details -->
+        <div id="contact-card" style="display:none;padding:20px;border-bottom:1px solid var(--line);background:#FAFAFC">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="field-group">
+              <label>Name</label>
+              <div style="font-size:14px;font-weight:600" id="detail-name">–</div>
+            </div>
+            <div class="field-group">
+              <label>Phone</label>
+              <div style="font-size:14px;font-family:var(--mono)" id="detail-phone">–</div>
+            </div>
+            <div class="field-group">
+              <label>Status</label>
+              <div id="detail-status">–</div>
+            </div>
+            <div class="field-group">
+              <label>Source</label>
+              <div style="font-size:14px" id="detail-source">–</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Thread View -->
+        <div class="thread" id="thread"></div>
+
+        <!-- Composer -->
+        <div class="composer" id="composer" style="display:none">
+          <input id="box" placeholder="Type message…" onkeydown="if(event.key==='Enter'&&event.ctrlKey)sendManualMsg()">
+          <button class="btn" id="sendbtn" onclick="sendManualMsg()">Send</button>
+        </div>
+        <div class="hint" id="hint"></div>
+      </div>
+    </div>
+
+    <!-- Analytics View -->
+    <div class="view" id="view-analytics">
+      <div class="phead" style="padding:14px 20px"><h3>Campaign Analytics</h3></div>
+      <div class="analytics-view">
+        <div>
+          <h4 style="margin:0 0 12px 0">Funnel</h4>
+          <div class="funnel" id="funnel"></div>
+        </div>
+        <div>
+          <h4 style="margin:0 0 12px 0">Message Performance</h4>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+            <div style="padding:12px;background:#FAFAFC;border-radius:8px">
+              <div style="font-size:11px;color:var(--muted);font-weight:600">Response Rate</div>
+              <div style="font-size:20px;font-weight:700;margin-top:6px" id="response-rate">–</div>
+            </div>
+            <div style="padding:12px;background:#FAFAFC;border-radius:8px">
+              <div style="font-size:11px;color:var(--muted);font-weight:600">Booking Rate</div>
+              <div style="font-size:20px;font-weight:700;margin-top:6px" id="booking-rate">–</div>
+            </div>
+            <div style="padding:12px;background:#FAFAFC;border-radius:8px">
+              <div style="font-size:11px;color:var(--muted);font-weight:600">Avg Response Time</div>
+              <div style="font-size:20px;font-weight:700;margin-top:6px" id="response-time">–</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sequences View -->
+    <div class="view" id="view-sequences">
+      <div class="phead" style="padding:14px 20px"><h3>Drip Sequences</h3></div>
+      <div style="padding:20px;overflow-y:auto">
+        <div id="sequences-list"></div>
+      </div>
+    </div>
+
+    <!-- Import View -->
+    <div class="view" id="view-import">
+      <div class="phead" style="padding:14px 20px"><h3>Import Leads</h3></div>
+      <div style="padding:20px;max-width:600px">
+        <form id="import-form" onsubmit="handleImport(event)">
+          <div class="field-group" style="margin-bottom:16px">
+            <label>CSV File</label>
+            <input type="file" id="csv-file" accept=".csv" required>
+          </div>
+          <div class="field-group" style="margin-bottom:16px">
+            <label>Sequence</label>
+            <select id="sequence-id" style="border:1px solid var(--line);border-radius:8px;padding:8px 12px" required>
+              <option value="">Loading…</option>
+            </select>
+          </div>
+          <div style="padding:12px;background:#FAFAFC;border-radius:8px;margin-bottom:16px;font-size:12px">
+            <strong>Column Mapping:</strong> CSV needs columns: Phone, First
+          </div>
+          <button type="submit" class="btn" style="width:100%">Import</button>
+          <div id="import-result" style="margin-top:12px;padding:12px;border-radius:8px;display:none"></div>
+        </form>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -112,42 +253,108 @@ header small{color:#9a9ab5;font-size:11px;display:block;margin-top:-1px}
 const AV=['#6D4AFF','#F5A623','#00C48C','#FF5C7A','#2B8CFF','#8B5CF6','#EC4899','#14B8A6'];
 const avc=n=>{let s=0;for(const c of n||'?')s+=c.charCodeAt(0);return AV[s%AV.length]};
 const ini=n=>(n||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
-let cur=null, dryRun=true;
 
-async function j(url,opts){const r=await fetch(url,opts);if(!r.ok)throw new Error((await r.json().catch(()=>({}))).detail||r.status);return r.json()}
+let cur=null, dryRun=true, allLeads=[], composerOpen=false;
+
+async function j(url,opts){
+  const r=await fetch(url,opts);
+  if(!r.ok)throw new Error((await r.json().catch(()=>({}))).detail||r.status);
+  return r.json();
+}
+
+function switchView(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(`view-${view}`).classList.add('active');
+  event.target.classList.add('active');
+}
 
 async function loadMetrics(){
   try{
     const m=await j('/contacts/metrics');
-    m_contacts.textContent=m.contacts;
-    m_engaged.textContent=m.by_status?.engaged||0;
-    m_booked.textContent=(m.by_status?.booked||0);
-    m_opted.textContent=m.by_status?.opted_out||0;
-    m_sent.textContent=m.sent;
+    document.getElementById('m-contacts').textContent=m.contacts;
+    document.getElementById('m-engaged').textContent=m.by_status?.engaged||0;
+    document.getElementById('m-booked').textContent=m.by_status?.booked||0;
+    document.getElementById('m-opted').textContent=m.by_status?.opted_out||0;
+    document.getElementById('m-sent').textContent=m.sent;
+    const rate=(m.delivery_rate!==null)?Math.round(m.delivery_rate*100)+'%':'–';
+    document.getElementById('m-delivery').textContent=rate;
+    updateFunnel(m);
   }catch(e){}
 }
-const m_contacts=document.getElementById('m-contacts'),m_engaged=document.getElementById('m-engaged'),
-m_booked=document.getElementById('m-booked'),m_opted=document.getElementById('m-opted'),m_sent=document.getElementById('m-sent');
+
+function updateFunnel(m){
+  const total=m.contacts||0;
+  const engaged=m.by_status?.engaged||0;
+  const booked=m.by_status?.booked||0;
+  const html=`
+    <div class="funnel-step">
+      <div class="funnel-bar">All Contacts (${total})</div>
+      <div class="funnel-pct">100%</div>
+    </div>
+    <div class="funnel-step">
+      <div class="funnel-bar">Engaged (${engaged})</div>
+      <div class="funnel-pct">${total?Math.round(engaged/total*100):'0'}%</div>
+    </div>
+    <div class="funnel-step">
+      <div class="funnel-bar">Booked (${booked})</div>
+      <div class="funnel-pct">${total?Math.round(booked/total*100):'0'}%</div>
+    </div>
+  `;
+  document.getElementById('funnel').innerHTML=html;
+}
 
 async function loadLeads(){
-  const rows=await j('/contacts');
+  try{
+    const rows=await j('/contacts');
+    allLeads=rows;
+    filterLeads();
+  }catch(e){}
+}
+
+function filterLeads(){
+  const search=document.getElementById('search').value.toLowerCase();
+  const filtered=allLeads.filter(c=>
+    (c.name||'').toLowerCase().includes(search) ||
+    c.phone.includes(search)
+  );
   const el=document.getElementById('leads');
-  if(!rows.length){el.innerHTML='<div class="empty">No leads yet. Import a CSV or create a test lead.</div>';return}
-  el.innerHTML=rows.map(c=>`
-    <div class="lead ${c.id===cur?'sel':''}" onclick="pick(${c.id},'${(c.name||'Lead').replace(/'/g,"")}')">
+  if(!filtered.length){
+    el.innerHTML='<div class="empty">No leads</div>';
+    return;
+  }
+  el.innerHTML=filtered.map(c=>`
+    <div class="lead ${c.id===cur?'sel':''}" onclick="pick(${c.id},'${(c.name||'Lead').replace(/'/g,'')}')" style="cursor:pointer">
       <div class="av" style="background:${avc(c.name||'L')}">${ini(c.name||'L')}</div>
-      <div><div class="nm">${c.name||'(no name)'}</div><div class="ph">${c.phone}</div></div>
+      <div style="flex:1">
+        <div class="nm">${c.name||'(no name)'}</div>
+        <div class="ph">${c.phone}</div>
+      </div>
       <span class="pill s-${c.status}">${c.status.replace('_',' ')}</span>
     </div>`).join('');
 }
 
 async function pick(id,name){
   cur=id;
-  document.getElementById('thread-title').textContent=name;
-  document.getElementById('box').disabled=!dryRun;
-  document.getElementById('sendbtn').disabled=!dryRun;
-  document.getElementById('hint').textContent=dryRun?'Test mode: you are typing as the lead. Agent replies run through the real pipeline; nothing is texted.':'Live mode: test chat disabled.';
-  await Promise.all([loadThread(),loadLeads()]);
+  document.getElementById('contact-name').textContent=name;
+  document.getElementById('edit-btn').style.display='inline-block';
+  document.getElementById('message-btn').style.display='inline-block';
+  document.getElementById('contact-card').style.display='block';
+  filterLeads();
+  await Promise.all([loadThread(),loadContactDetail()]);
+}
+
+async function loadContactDetail(){
+  if(!cur)return;
+  try{
+    const contacts=await j('/contacts');
+    const c=contacts.find(x=>x.id===cur);
+    if(!c)return;
+    document.getElementById('detail-name').textContent=c.name||'–';
+    document.getElementById('detail-phone').textContent=c.phone;
+    document.getElementById('detail-status').innerHTML=`<span class="pill s-${c.status}">${c.status}</span>`;
+    document.getElementById('detail-source').textContent=c.tags?.[0]||'–';
+  }catch(e){}
 }
 
 async function loadThread(){
@@ -157,64 +364,98 @@ async function loadThread(){
   el.innerHTML=msgs.length?msgs.map(m=>{
     const cls=m.direction==='in'?'in':(m.status==='draft'?'draft':'out');
     const tag=m.direction==='in'?'LEAD':(m.status==='draft'?'AGENT · DRAFT':'AGENT');
-    return `<div class="msg ${cls}"><span class="tag">${tag}</span>${m.body}</div>`;
-  }).join(''):'<div class="empty">No messages yet — say something as the lead.</div>';
+    return `<div class="msg ${cls}"><span class="tag">${tag}</span>${m.body}${m.status&&m.status!=='draft'?`<span class="status">${m.status}</span>`:''}</div>`;
+  }).join(''):'<div class="empty">No messages yet</div>';
   el.scrollTop=el.scrollHeight;
 }
 
-async function newLead(){
-  const name=prompt('Test lead first name:','Alex');if(name===null)return;
-  const c=await j('/testchat/new',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({name:name||'Alex',company:'Northgate'})});
-  await loadLeads();await loadMetrics();
-  pick(c.id,c.name);
+function toggleComposer(){
+  const c=document.getElementById('composer');
+  const hint=document.getElementById('hint');
+  composerOpen=!composerOpen;
+  c.style.display=composerOpen?'flex':'none';
+  hint.textContent=composerOpen?dryRun?'Test mode: agent processes your message through the full pipeline':'Live mode: message will be sent':'';
+  if(composerOpen)document.getElementById('box').focus();
 }
 
-async function sendMsg(){
+async function sendManualMsg(){
   const box=document.getElementById('box');
   const text=box.value.trim();
   if(!text||!cur)return;
-  box.value='';box.disabled=true;
+  box.value='';
+  box.disabled=true;
   document.getElementById('sendbtn').innerHTML='<span class="spin"></span>';
   try{
     await j(`/testchat/${cur}/message`,{method:'POST',
       headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+    await Promise.all([loadThread(),loadMetrics(),loadLeads()]);
   }catch(e){alert('Error: '+e.message)}
-  box.disabled=false;box.focus();
+  box.disabled=false;
+  box.focus();
   document.getElementById('sendbtn').textContent='Send';
-  await Promise.all([loadThread(),loadDrafts(),loadMetrics(),loadLeads()]);
 }
 
-async function loadDrafts(){
-  const rows=await j('/contacts/drafts');
-  const el=document.getElementById('drafts');
-  if(!rows.length){el.innerHTML='<div class="empty">No drafts. When AUTO_SEND=false, agent replies wait here for your approval.</div>';return}
-  el.innerHTML=rows.map(d=>`
-    <div class="draft-item">
-      <div class="who">Contact #${d.contact_id}</div>
-      <div class="body">${d.body}</div>
-      <div class="row">
-        <button class="btn ok" onclick="approve(${d.id})">Approve &amp; send</button>
-        <button class="btn no" onclick="discard(${d.id})">Discard</button>
-      </div>
-    </div>`).join('');
+async function newLead(){
+  const name=prompt('Lead name:','Alex');
+  if(name===null)return;
+  try{
+    const c=await j('/testchat/new',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name:name||'Alex',company:'Company'})});
+    await loadLeads();
+    await loadMetrics();
+    pick(c.id,c.name);
+  }catch(e){alert('Error: '+e.message)}
 }
-async function approve(id){try{await j(`/drafts/${id}/approve`,{method:'POST'})}catch(e){alert(e.message)}
-  await Promise.all([loadDrafts(),loadThread(),loadMetrics()])}
-async function discard(id){await j(`/drafts/${id}/discard`,{method:'POST'});
-  await Promise.all([loadDrafts(),loadThread()])}
+
+function editContact(){
+  alert('Edit contact: Coming soon');
+}
+
+async function handleImport(e){
+  e.preventDefault();
+  const file=document.getElementById('csv-file').files[0];
+  const seq=document.getElementById('sequence-id').value;
+  if(!file||!seq)return;
+
+  const fd=new FormData();
+  fd.append('file',file);
+  fd.append('sequence_id',seq);
+  fd.append('mapping','{"phone":"Phone","first_name":"First"}');
+
+  document.getElementById('import-result').style.display='none';
+  const btn=e.target.querySelector('button');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spin"></span>';
+
+  try{
+    const res=await j('/imports',{method:'POST',body:fd});
+    document.getElementById('import-result').innerHTML=`
+      <style>background:var(--live-soft);color:#068A63</style>
+      ✓ Imported ${res.imported} leads, skipped ${res.skipped}, duplicates ${res.duplicates}
+    `;
+    document.getElementById('import-result').style.display='block';
+    await loadLeads();
+    await loadMetrics();
+  }catch(e){
+    document.getElementById('import-result').innerHTML=`✗ Error: ${e.message}`;
+    document.getElementById('import-result').style.display='block';
+  }
+  btn.disabled=false;
+  btn.textContent='Import';
+}
 
 async function boot(){
   try{
     const h=await j('/health');
     dryRun=h.dry_run;
     const m=document.getElementById('mode');
-    m.textContent=dryRun?'DRY RUN — nothing is texted':'LIVE';
+    m.textContent=dryRun?'DRY RUN':'LIVE';
     m.classList.toggle('live',!dryRun);
   }catch(e){}
-  await Promise.all([loadMetrics(),loadLeads(),loadDrafts()]);
-  setInterval(()=>{loadMetrics();loadDrafts()},8000);
+  await Promise.all([loadMetrics(),loadLeads()]);
+  setInterval(()=>{loadMetrics();loadLeads()},8000);
 }
+
 boot();
 </script>
 </body>
