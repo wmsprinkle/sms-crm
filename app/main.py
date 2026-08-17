@@ -1,11 +1,14 @@
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 from app.db import engine
-from app.models import Base
+from app.models import Base, Contact
 from app.config import settings
 from app.routers import webhooks, imports, contacts, drafts, testchat
-from app.worker.scheduler import start
+from app.worker.scheduler import start, FIRST_MESSAGE
+from app.services.merge import render
+from app.services.telnyx_client import send_sms
 
 app = FastAPI(title="SMS Booking CRM")
 
@@ -19,6 +22,10 @@ app.include_router(drafts.router)
 app.include_router(testchat.router)
 
 _CONSOLE = Path(__file__).parent / "static" / "console.html"
+
+
+class SendTestSMS(BaseModel):
+    phone: str
 
 
 @app.get("/")
@@ -45,3 +52,32 @@ def health():
         return {"ok": True, "dry_run": settings.dry_run}
     except Exception as e:
         return {"ok": False, "error": "database unavailable"}, 503
+
+
+@app.post("/test/send-sms")
+def test_send_sms(body: SendTestSMS):
+    """Test endpoint: send the first message to a phone number.
+
+    Used to test outbound SMS and trigger inbound webhook flow.
+    """
+    import httpx
+
+    phone = body.phone.strip()
+    fake_contact = Contact(phone=phone, first_name="Friend")
+    rendered = render(FIRST_MESSAGE, fake_contact)
+
+    try:
+        data = send_sms(phone, rendered)
+        return {
+            "sent": True,
+            "phone": phone,
+            "message": rendered,
+            "telnyx_id": data.get("id")
+        }
+    except httpx.HTTPError as e:
+        return {
+            "error": f"HTTP {e.response.status_code if hasattr(e, 'response') else 'unknown'}",
+            "detail": e.response.text if hasattr(e, 'response') else str(e)
+        }, 500
+    except Exception as e:
+        return {"error": str(e), "type": type(e).__name__}, 500
