@@ -33,4 +33,13 @@ def _startup():
 
 @app.get("/health")
 def health():
-    return {"ok": True, "dry_run": settings.dry_run}
+    """Health check endpoint for monitoring and load balancers.
+
+    Returns 200 if database is connected, 503 if not.
+    """
+    try:
+        with engine.connect() as conn:
+            conn.exec_driver_sql("SELECT 1")
+        return {"ok": True, "dry_run": settings.dry_run}
+    except Exception as e:
+        return {"ok": False, "error": f"database error: {str(e)}"}, 503

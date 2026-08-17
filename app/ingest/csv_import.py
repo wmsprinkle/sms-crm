@@ -23,15 +23,44 @@ def import_csv(db, file_bytes: bytes, mapping: dict,
         {"phone": "Phone", "first_name": "First", "company": "Company"}
     Any mapped field other than phone/first_name is stored in Contact.fields
     so it's available as a {{merge}} token.
+
+    Returns:
+        {"imported": N, "skipped": N, "duplicates": N, "errors": []}
     """
-    reader = csv.DictReader(io.StringIO(file_bytes.decode("utf-8-sig")))
+    if "phone" not in mapping:
+        return {"error": "mapping must include 'phone' key", "imported": 0, "skipped": 0, "duplicates": 0}
+
+    errors = []
+    try:
+        text = file_bytes.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        try:
+            text = file_bytes.decode("latin-1")
+        except UnicodeDecodeError:
+            return {"error": "could not decode file (try UTF-8 or Latin-1)", "imported": 0, "skipped": 0, "duplicates": 0}
+
+    try:
+        reader = csv.DictReader(io.StringIO(text))
+        if not reader.fieldnames:
+            return {"error": "CSV is empty or invalid", "imported": 0, "skipped": 0, "duplicates": 0}
+    except csv.Error as e:
+        return {"error": f"CSV parsing error: {str(e)}", "imported": 0, "skipped": 0, "duplicates": 0}
+
     imported = skipped = dupes = 0
 
-    for row in reader:
-        phone = normalize(row.get(mapping["phone"], ""))
-        if not phone:
+    for row_num, row in enumerate(reader, start=2):  # start at 2 (after header)
+        phone_col = mapping.get("phone")
+        if not phone_col or phone_col not in row:
+            errors.append(f"Row {row_num}: phone column '{phone_col}' not found")
             skipped += 1
             continue
+
+        phone = normalize(row.get(phone_col, ""))
+        if not phone:
+            errors.append(f"Row {row_num}: invalid phone number '{row.get(phone_col, '')}'")
+            skipped += 1
+            continue
+
         if db.query(Contact).filter_by(phone=phone).first():
             dupes += 1
             continue
@@ -43,7 +72,7 @@ def import_csv(db, file_bytes: bytes, mapping: dict,
         }
         contact = Contact(
             phone=phone,
-            first_name=row.get(mapping.get("first_name", ""), None),
+            first_name=(row.get(mapping.get("first_name", ""), "") or None)[:100],
             fields=fields,
             source=source,
             status="active",
@@ -60,4 +89,7 @@ def import_csv(db, file_bytes: bytes, mapping: dict,
         imported += 1
 
     db.commit()
-    return {"imported": imported, "skipped": skipped, "duplicates": dupes}
+    result = {"imported": imported, "skipped": skipped, "duplicates": dupes}
+    if errors:
+        result["errors"] = errors[:10]  # cap error list
+    return result
