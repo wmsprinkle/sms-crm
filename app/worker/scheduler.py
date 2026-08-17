@@ -18,6 +18,10 @@ BATCH = max(1, settings.send_rate_per_minute * INTERVAL // 60)
 # seconds between sends within a tick, to smooth bursts into a steady rate
 SPACING = INTERVAL / BATCH
 
+# HARDCODED first message (no DB query, just merge tokens)
+# This is the same for everyone, so no reason to query DB 10,000 times
+FIRST_MESSAGE = "Hey {{first_name}}, I am reaching out to see if you were interested in term life or health insurance?"
+
 
 def _advance(db, e: Enrollment):
     """Move an enrollment to its next step, or complete it."""
@@ -60,17 +64,21 @@ def tick() -> None:
                 db.commit()
                 continue
 
-            step = (
-                db.query(Step)
-                .filter_by(sequence_id=e.sequence_id, order=e.current_step)
-                .first()
-            )
-            if step is None:
-                e.status = "completed"
-                db.commit()
-                continue
-
-            body = render(step.body, contact)
+            # First message is hardcoded (same for everyone, skip DB query)
+            if e.current_step == 0:
+                body = render(FIRST_MESSAGE, contact)
+            else:
+                # Subsequent messages from database
+                step = (
+                    db.query(Step)
+                    .filter_by(sequence_id=e.sequence_id, order=e.current_step)
+                    .first()
+                )
+                if step is None:
+                    e.status = "completed"
+                    db.commit()
+                    continue
+                body = render(step.body, contact)
             try:
                 data = send_sms(contact.phone, body)
                 telnyx_id, status = data.get("id"), "queued"

@@ -1,8 +1,12 @@
 """The conversational booking agent: decides the next move on an inbound text
-and either sends it or holds it as a draft, gated by compliance."""
+and either sends it or holds it as a draft, gated by compliance.
+
+Smart token usage: AI only engages on warm leads (interested prospects).
+Cold/uninterested responses get auto-responded without LLM."""
 from app.models import Contact, Message, Enrollment
 from app.services import compliance
 from app.services.llm import decide
+from app.services.warm_lead import is_warm_lead, get_cold_response
 from app.services.telnyx_client import send_sms
 from app.services.booking import get_provider
 from app.config import settings
@@ -33,7 +37,21 @@ def handle_inbound(db, contact: Contact, text: str) -> None:
     )
     contact.status = "engaged"
 
-    # 3) let the agent decide the next move
+    # 3) check if this is a warm lead (interested) before wasting LLM tokens
+    if not is_warm_lead(text):
+        # Cold lead: auto-respond without AI
+        msg = get_cold_response(contact.first_name or "there")
+        if settings.auto_send and compliance.can_send(contact):
+            data = send_sms(contact.phone, msg)
+            db.add(Message(contact_id=contact.id, direction="out", body=msg,
+                           telnyx_id=data.get("id"), status="queued"))
+        else:
+            db.add(Message(contact_id=contact.id, direction="out", body=msg,
+                           status="draft"))
+        db.commit()
+        return
+
+    # 4) warm lead: let the agent decide the next move (use LLM)
     link = get_provider().link_for(contact)
     thread = (
         db.query(Message)
@@ -54,7 +72,7 @@ def handle_inbound(db, contact: Contact, text: str) -> None:
         db.commit()
         return
 
-    # 4) send now, or hold as a draft for approval (AUTO_SEND leash)
+    # 5) send now, or hold as a draft for approval (AUTO_SEND leash)
     if settings.auto_send and compliance.can_send(contact):
         data = send_sms(contact.phone, msg)
         db.add(Message(contact_id=contact.id, direction="out", body=msg,
